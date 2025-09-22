@@ -1,0 +1,6 @@
+target/
+.lein-*
+
+.lsp/
+.clj-kondo/.cache/
+.vscode/
