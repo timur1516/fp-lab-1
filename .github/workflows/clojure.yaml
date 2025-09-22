@@ -39,7 +39,7 @@ jobs:
           mkdir -p ~/.bin
           curl https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -o ~/.bin/lein
           chmod u+x ~/.bin/lein
-          export PATH=$PATH:~/.bin
+          echo "$HOME/.bin" >> $GITHUB_PATH
       
       - name: Get Leiningen Dependencies
         run: lein deps
@@ -69,7 +69,7 @@ jobs:
           mkdir -p ~/.bin
           curl https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -o ~/.bin/lein
           chmod u+x ~/.bin/lein
-          export PATH=$PATH:~/.bin
+          echo "$HOME/.bin" >> $GITHUB_PATH
           
       - name: Get Leiningen Dependencies
         run: lein deps
