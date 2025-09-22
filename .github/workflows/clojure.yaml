@@ -33,7 +33,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'lein'
           
       - name: Install Leiningen
         run: |
@@ -64,7 +63,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'lein'
           
       - name: Install Leiningen
         run: |
