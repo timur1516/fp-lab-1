@@ -4,7 +4,6 @@
   :license {:name "MIT License"
             :url "https://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.12.2"]]
-  :main ^:skip-aot fp-lab-1.core
   :target-path "target/%s"
   :plugins [[dev.weavejester/lein-cljfmt "0.13.1"],
             [jonase/eastwood "1.4.3"],

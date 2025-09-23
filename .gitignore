@@ -1,5 +1,7 @@
 target/
 .lein-*
+.nrepl-*
+.calva/
 
 .lsp/
 .clj-kondo/.cache/
