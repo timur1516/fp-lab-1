@@ -2,12 +2,12 @@
 
 (defn cycle-length [n]
   (letfn [(rem-distance [seq]
-            (reduce (fn [seen [idx item]]
+            (reduce (fn [used [idx item]]
                       (if (zero? item)
                         (reduced 0)
-                        (if (contains? seen item)
-                          (reduced (- idx (seen item)))
-                          (assoc seen item idx))))
+                        (if (contains? used item)
+                          (reduced (- idx (used item)))
+                          (assoc used item idx))))
                     {} seq))
           (rem-seq [n] (iterate #(mod (* % 10) n) 1))]
     (->> (rem-seq n)

@@ -1,13 +1,13 @@
 (ns fp-lab-1.task26.simple-rec)
 
 (defn cycle-length [n]
-  (letfn [(find-cycle [remainder seen position]
+  (letfn [(find-cycle [remainder used position]
             (if (= remainder 0)
               0
-              (if (contains? seen remainder)
-                (- position (get seen remainder))
+              (if (contains? used remainder)
+                (- position (get used remainder))
                 (find-cycle (mod (* remainder 10) n)
-                            (assoc seen remainder position)
+                            (assoc used remainder position)
                             (inc position)))))]
     (find-cycle 1 {} 0)))
 

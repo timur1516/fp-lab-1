@@ -5,4 +5,5 @@ target/
 
 .lsp/
 .clj-kondo/.cache/
+.eastwood
 .vscode/

@@ -181,6 +181,26 @@
 
 [Файл с решением](/src/fp_lab_1/task5/inf_seq.clj)
 
+### Решение на python
+
+```pyhton
+def gcd(a, b):
+    if b == 0:
+        return a
+    return gcd(b, a % b)
+
+def lcm(a, b):
+    return a * b // gcd(a, b)
+
+def smallest_multiple(n):
+    ans = 1
+    for i in range(1, n + 1):
+        ans = lcm(ans, i)
+    return ans
+```
+
+[Файл с решением](/py/task5.py)
+
 ## Проблема №26
 
 - **Название**: Reciprocal Cycles
@@ -246,13 +266,13 @@ new_reminder = (old_reminder * 10) % n
 
 ```clj
 (defn cycle-length [n]
-  (letfn [(find-cycle [remainder seen position]
+  (letfn [(find-cycle [remainder used position]
             (if (= remainder 0)
               0
-              (if (contains? seen remainder)
-                (- position (get seen remainder))
+              (if (contains? used remainder)
+                (- position (get used remainder))
                 (find-cycle (mod (* remainder 10) n)
-                            (assoc seen remainder position)
+                            (assoc used remainder position)
                             (inc position)))))]
     (find-cycle 1 {} 0)))
 
@@ -282,12 +302,12 @@ new_reminder = (old_reminder * 10) % n
 ```clj
 (defn cycle-length [n]
   (letfn [(rem-distance [seq]
-            (reduce (fn [seen [idx item]]
+            (reduce (fn [used [idx item]]
                       (if (zero? item)
                         (reduced 0)
-                        (if (contains? seen item)
-                          (reduced (- idx (seen item)))
-                          (assoc seen item idx))))
+                        (if (contains? used item)
+                          (reduced (- idx (used item)))
+                          (assoc used item idx))))
                     {} seq))
           (rem-seq [n] (iterate #(mod (* % 10) n) 1))]
     (->> (rem-seq n)
@@ -339,7 +359,7 @@ new_reminder = (old_reminder * 10) % n
 
 ```clj
 (defn cycle-length [n]
-  (let [seen (atom {})
+  (let [used (atom {})
         remainder (atom 1)
         position (atom 0)
         result (atom 0)]
@@ -349,12 +369,12 @@ new_reminder = (old_reminder * 10) % n
           (do
             (reset! result 0)
             (reduced nil))
-          (if (contains? @seen current-remainder)
+          (if (contains? @used current-remainder)
             (do
-              (reset! result (- @position (get @seen current-remainder)))
+              (reset! result (- @position (get @used current-remainder)))
               (reduced nil))
             (do
-              (swap! seen assoc current-remainder @position)
+              (swap! used assoc current-remainder @position)
               (swap! remainder #(mod (* % 10) n))
               (swap! position inc))))))
     @result))
@@ -386,3 +406,37 @@ new_reminder = (old_reminder * 10) % n
 ```
 
 [Файл с решением](/src/fp_lab_1/task26/inf_seq.clj)
+
+### Решение на python
+
+```pyhton
+def cycle_length(n):
+    reminder = 1
+    position = 0
+    used = {}
+    
+    while reminder != 0:
+        if reminder in used:
+            return position - used[reminder]
+        used[reminder] = position
+        reminder = (reminder * 10) % n
+        position += 1
+    
+    return 0
+
+def reciprocal_cycles(n):
+    max_length = 0
+    value = 1
+    for i in range(1, n + 1):
+        cur_length = cycle_length(i)
+        if cur_length > max_length:
+            max_length = cur_length
+            value = i
+    return value
+```
+
+[Файл с решением](/py/task26.py)
+
+## Вывод
+
+В ходе работы я гораздо ближе познакомился с синтаксисом языка Clojure и его особенностями. Для себя я понял что с одной стороны функциональное программирование это не так страшно и даже интересно, но с другой иногда возникает желание выкинуть ноутбук в окно. Если сравнивать решения поставленных задач на Clojure и pyhton, то могу отметить что некоторые реализации на Clojure выглядят очень красиво и лаконично, в особенности варианты с последовательнотями. Однако любые попытки внести императив приводят к очень непрятным последствиям в виде резкого снижения читаемости и эффективности кода.

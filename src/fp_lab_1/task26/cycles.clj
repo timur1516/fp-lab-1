@@ -1,7 +1,7 @@
 (ns fp-lab-1.task26.cycles)
 
 (defn cycle-length [n]
-  (let [seen (atom {})
+  (let [used (atom {})
         remainder (atom 1)
         position (atom 0)
         result (atom 0)]
@@ -11,12 +11,12 @@
           (do
             (reset! result 0)
             (reduced nil))
-          (if (contains? @seen current-remainder)
+          (if (contains? @used current-remainder)
             (do
-              (reset! result (- @position (get @seen current-remainder)))
+              (reset! result (- @position (get @used current-remainder)))
               (reduced nil))
             (do
-              (swap! seen assoc current-remainder @position)
+              (swap! used assoc current-remainder @position)
               (swap! remainder #(mod (* % 10) n))
               (swap! position inc))))))
     @result))
