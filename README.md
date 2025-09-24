@@ -50,7 +50,7 @@
 
 - перемножить все результаты возведения
 
-Я использовал этотт подход в реализации с `map`. Он использует функцию `prime?` которая проверяет число на прототу и также реализована в модуле [`math`](/src/fp_lab_1/util/math.clj):
+Я использовал этот подход в реализации с `map`. Он использует функцию `prime?` которая проверяет число на прототу и также реализована в модуле [`math`](/src/fp_lab_1/util/math.clj):
 
 ```clj
 (defn prime?
@@ -74,7 +74,6 @@
 - иначе возвращаемся к началу цикла, присвоив `i` значение `i + 1` а result значение `НОК(result, i)`
 
 Для реализации хвостовой рекурсии используется конструкция `loop` и `recur` так как компилятор Clojure сам по себе не производит эту оптимизацию.
-
 
 ```clj
 (defn smallest-multiple [n]
@@ -203,3 +202,187 @@
     Where $0.1(6)$ means $0.166666...$ , and has a $1$-digit recurring cycle. It can be seen that $1/7$ has a $6$-digit recurring cycle.
 
 - **Задание**: Find the value of $d < 1000$ for which $1/d$ contains the longest recurring cycle in its decimal fraction part.
+
+### Идея решения
+
+Единственное что приходит в голову: максимально прямолинейно проверить то что спрашивают. Для этого нужно научится генерировать последовательноть из чисел после запятой при делении. Самая надёжная и при этом наивная реализация это деление уголком как в школе.
+
+Для начала заметим, что к возникновению цикла приводит повторение остатков от деления, поэтому хранить сами числа нет никакой необходимости. Будем работать только с остатками. Для каждого вычисленного остатка будет запоминать его "позицию" при помощи мапы. Дальше достачно проверять не встречался ли уже вычисленный остаок, и если это так то просто считаем разность текущей и ранее вычисленной позиции и выходим. Формула вычисления очередного остатка предельно проста:
+
+```python
+new_reminder = (old_reminder * 10) % n
+```
+
+### Монолитная реализация с использованием хвостовой рекурсии
+
+Как и раньше для хвостовой рекурсии применяются `loop` и `recur`. В основной функции перебираются числа, во вспомогательной `cycle-length` по описанному выше алгоритму вычисляется длинна цикла.
+
+```clj
+(defn cycle-length [n]
+  (loop [remainder 1 used {} position 0]
+    (if (zero? remainder)
+      0
+      (if (contains? used remainder) 
+        (- position (get used remainder))
+        (recur (mod (* remainder 10) n)
+               (assoc used remainder position)
+               (inc position))))))
+
+(defn reciprocal-cycles [n]
+  (loop [d 1 max-d 1 max-length 0]
+    (if (>= d n)
+      max-d
+      (let [length (cycle-length d)]
+        (if (> length max-length)
+          (recur (inc d) d length)
+          (recur (inc d) max-d max-length))))))
+```
+
+[Файл с решением](/src/fp_lab_1/task26/tail_rec.clj)
+
+### Простое рекурсивное решение
+
+Всё аналогично решению выше но теперь без хвостовой оптимизации
+
+```clj
+(defn cycle-length [n]
+  (letfn [(find-cycle [remainder seen position]
+            (if (= remainder 0)
+              0
+              (if (contains? seen remainder)
+                (- position (get seen remainder))
+                (find-cycle (mod (* remainder 10) n)
+                            (assoc seen remainder position)
+                            (inc position)))))]
+    (find-cycle 1 {} 0)))
+
+(defn reciprocal-cycles [n]
+  (letfn [(find-max [d max-d max-length]
+            (if (>= d n)
+              max-d
+              (let [length (cycle-length d)]
+                (if (> length max-length)
+                  (find-max (inc d) d length)
+                  (find-max (inc d) max-d max-length)))))]
+    (find-max 1 1 0)))
+```
+
+[Файл с решением](/src/fp_lab_1/task26/simple_rec.clj)
+
+### Модульная реализация
+
+Как можно было заметить ранее, формула вычисления остатков очень рекурсивная, поэтому здесь прямо напрашивалось использование метода `iterate`, который позволил получить вот такой лаконичный метод генерации последовательности остатков:
+
+```clj
+(iterate #(mod (* % 10) n) 1)
+```
+
+Основываясь на нём я написал новую реализацию функции cycle-length, основанную на всё той же идее но уже с последовательностями:
+
+```clj
+(defn cycle-length [n]
+  (letfn [(rem-distance [seq]
+            (reduce (fn [seen [idx item]]
+                      (if (zero? item)
+                        (reduced 0)
+                        (if (contains? seen item)
+                          (reduced (- idx (seen item)))
+                          (assoc seen item idx))))
+                    {} seq))
+          (rem-seq [n] (iterate #(mod (* % 10) n) 1))]
+    (->> (rem-seq n)
+         (map-indexed list)
+         (rem-distance))))
+```
+
+Эта функция применяет как в текущем решении, так и в решениях с `map` и  бесконечными последовательностями.
+
+Идея же самого модульного решения фактически состоит в генерации последовательности числе через range, маппинге её на длинны циклов и поиск максимума.
+
+```clj
+(defn max-length [max-pair cur-pair]
+  (if (> (second cur-pair) (second max-pair))
+    cur-pair
+    max-pair))
+
+(defn reciprocal-cycles [n]
+  (->> (range 1 (inc n))
+       (map #(vector % (cycle-length %)))
+       (reduce max-length [1 0])
+       (first)))
+```
+
+[Файл с решением](/src/fp_lab_1/task26/module.clj)
+
+### Генерация последовательности через `map`
+
+Решение фактически дублирует предыдущее, так как там уже применялся `map` для генерации последовательности
+
+```clj
+(defn max-length [max-pair cur-pair]
+  (if (> (second cur-pair) (second max-pair))
+    cur-pair
+    max-pair))
+
+(defn reciprocal-cycles [n]
+  (->> (range 1 (inc n))
+       (map #(vector % (cycle-length %)))
+       (reduce max-length [1 0])
+       (first)))
+```
+
+[Файл с решением](/src/fp_lab_1/task26/map.clj)
+
+### Работа со спец синтаксисом циклов
+
+Здесь используется `do-seq` при помощи которого происходят все итерации и `atom` для сохранения результатов.
+
+```clj
+(defn cycle-length [n]
+  (let [seen (atom {})
+        remainder (atom 1)
+        position (atom 0)
+        result (atom 0)]
+    (doseq [_ (range n)]
+      (let [current-remainder @remainder]
+        (if (= current-remainder 0)
+          (do
+            (reset! result 0)
+            (reduced nil))
+          (if (contains? @seen current-remainder)
+            (do
+              (reset! result (- @position (get @seen current-remainder)))
+              (reduced nil))
+            (do
+              (swap! seen assoc current-remainder @position)
+              (swap! remainder #(mod (* % 10) n))
+              (swap! position inc))))))
+    @result))
+
+(defn reciprocal-cycles [n]
+  (let [max-d (atom 1)
+        max-length (atom 0)]
+    (doseq [d (range 1 n)]
+      (let [length (cycle-length d)]
+        (when (> length @max-length)
+          (reset! max-d d)
+          (reset! max-length length))))
+    @max-d))
+```
+
+[Файл с решением](/src/fp_lab_1/task26/cycles.clj)
+
+### Работа с бесконечными списками
+
+Решение повторяет модульное, за исключением способа генерации последовательности чисел, которая теперь бесконечная:
+
+```clj
+(defn reciprocal-cycles [n]
+  (->> (iterate inc 1)
+       (map #(vector % (cycle-length %)))
+       (take n)
+       (reduce max-length [1 0])
+       (first)))
+```
+
+[Файл с решением](/src/fp_lab_1/task26/inf_seq.clj)
