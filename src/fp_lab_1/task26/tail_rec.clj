@@ -4,7 +4,7 @@
   (loop [remainder 1 used {} position 0]
     (if (zero? remainder)
       0
-      (if (contains? used remainder) 
+      (if (contains? used remainder)
         (- position (get used remainder))
         (recur (mod (* remainder 10) n)
                (assoc used remainder position)
