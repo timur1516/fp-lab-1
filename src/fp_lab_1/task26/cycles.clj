@@ -7,7 +7,7 @@
         result (atom 0)]
     (doseq [_ (range n)]
       (let [current-remainder @remainder]
-        (if (= current-remainder 0)
+        (if (zero? current-remainder)
           (do
             (reset! result 0)
             (reduced nil))

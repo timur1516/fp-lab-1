@@ -2,7 +2,7 @@
 
 (defn cycle-length [n]
   (letfn [(find-cycle [remainder used position]
-            (if (= remainder 0)
+            (if (zero? remainder)
               0
               (if (contains? used remainder)
                 (- position (get used remainder))
